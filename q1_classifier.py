@@ -1,6 +1,7 @@
 import argparse
 import os.path
 import pickle
+import types
 
 import numpy as np
 import pandas as pd
@@ -40,7 +41,7 @@ class ID3DecisionTree:
             p_value = self.compute_chisquare(X[attr_to_split], y)
 
             if p_value < self.p_value_threshold:
-                curr_node = TreeNode(val=attr_to_split + 1)
+                curr_node = TreeNode(val=attr_to_split)
 
                 for category in X[attr_to_split].unique():
                     new_X = X[X[attr_to_split] == category]
@@ -93,7 +94,6 @@ class ID3DecisionTree:
 
     @staticmethod
     def compute_chisquare(attr_values, target_values):
-        f_obs, f_exp = [], []
         p, n = 0, 0
         target_value_counts = target_values.value_counts().to_dict()
         if 1 in target_value_counts:
@@ -119,13 +119,18 @@ class ID3DecisionTree:
         p_value = 1 - chi2.cdf(x=S, df=m - 1)
         return p_value
 
-    def predict(self, X):
-        pass
-        return None
-
     def save(self, model_path):
         with open(model_path, 'w') as f:
             pickle.dump(self, f)
+
+    def predict(self, X):
+        y_pred = pd.Series([self.predict_label(self.root, row) for row in X[X.columns].values])
+        return y_pred
+
+    def predict_label(self, node, row):
+        if isinstance(type(node.val), types.BooleanType):
+            return int(node.val)
+        return self.predict_label(node.children[row[node.val] - 1], row)
 
 
 if __name__ == '__main__':
@@ -145,4 +150,6 @@ if __name__ == '__main__':
 
     model = ID3DecisionTree(args.p_value_threshold).fit(X_train, y_train)
     model.save(args.decision_tree)
-    y_pred = model.predict(X_test)
+
+    preds = model.predict(X_test)
+    preds.to_csv(args.output_file, index=False)
