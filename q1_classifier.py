@@ -1,5 +1,6 @@
 import argparse
 import os.path
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -122,6 +123,10 @@ class ID3DecisionTree:
         pass
         return None
 
+    def save(self, model_path):
+        with open(model_path, 'w') as f:
+            pickle.dump(self, f)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -139,5 +144,5 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(train_file, test_file, y_train_file, y_test_file)
 
     model = ID3DecisionTree(args.p_value_threshold).fit(X_train, y_train)
-
+    model.save(args.decision_tree)
     y_pred = model.predict(X_test)
