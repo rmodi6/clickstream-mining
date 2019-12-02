@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from scipy.stats import chi2
+from sklearn.metrics import accuracy_score
 
 
 def train_test_split(train_file, test_file, y_train_file, y_test_file):
@@ -154,5 +155,9 @@ if __name__ == '__main__':
     model = ID3DecisionTree(args.p_value_threshold).fit(X_train, y_train)
     model.save(args.decision_tree)
 
+    # model = pickle.load(open(args.decision_tree, 'r'))
+
     preds = model.predict(X_test)
-    preds.to_csv(args.output_file, index=False)
+    preds.to_csv(args.output_file, header=False, index=False)
+
+    print(accuracy_score(y_test, preds))
