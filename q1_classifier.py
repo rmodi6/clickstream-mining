@@ -1,7 +1,6 @@
 import argparse
 import os.path
 import pickle
-import types
 
 import numpy as np
 import pandas as pd
@@ -21,7 +20,7 @@ def train_test_split(train_file, test_file, y_train_file, y_test_file):
 class TreeNode:
     def __init__(self, val):
         self.val = val
-        self.children = []
+        self.children = {}
 
 
 class ID3DecisionTree:
@@ -29,7 +28,7 @@ class ID3DecisionTree:
         self.p_value_threshold = p_value_threshold
         self.root = None
 
-    def fit(self, X, y, parent=None):
+    def fit(self, X, y, parent=None, attr_val=None):
         if 0 not in y.unique():
             curr_node = TreeNode(val=True)
         elif 1 not in y.unique():
@@ -38,10 +37,14 @@ class ID3DecisionTree:
             curr_node = self.create_max_label_node(y)
         else:
             attr_to_split = self.least_entropy_attr(X, y)
-            p_value = self.compute_chisquare(X[attr_to_split], y)
+            if self.p_value_threshold < 1:
+                p_value = self.compute_chisquare(X[attr_to_split], y)
+            else:
+                p_value = 0
 
             if p_value < self.p_value_threshold:
                 curr_node = TreeNode(val=attr_to_split)
+                curr_node.children[-1] = self.create_max_label_node(y)
 
                 for category in X[attr_to_split].unique():
                     new_X = X[X[attr_to_split] == category]
@@ -50,13 +53,13 @@ class ID3DecisionTree:
                     else:
                         new_X.drop(attr_to_split, axis=1, inplace=True)
                         new_y = y.loc[new_X.index]
-                        self.fit(new_X, new_y, parent=curr_node)
+                        self.fit(new_X, new_y, parent=curr_node, attr_val=category)
             else:
                 curr_node = self.create_max_label_node(y)
         if parent is None:
             self.root = curr_node
         else:
-            parent.children.append(curr_node)
+            parent.children[attr_val] = curr_node
         return self
 
     @staticmethod
@@ -128,9 +131,9 @@ class ID3DecisionTree:
         return y_pred
 
     def predict_label(self, node, row):
-        if isinstance(type(node.val), types.BooleanType):
+        if isinstance(node.val, bool):
             return int(node.val)
-        return self.predict_label(node.children[row[node.val] - 1], row)
+        return self.predict_label(node.children.get(row[node.val], node.children[-1]), row)
 
 
 if __name__ == '__main__':
