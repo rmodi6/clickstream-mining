@@ -228,6 +228,31 @@ class ID3DecisionTree:
         # value at the current node in the tree.
         return self.predict_label(node.children.get(row[node.val], node.children[-1]), row)
 
+    def get_number_of_nodes(self):
+        """
+        Calculate the number of internal nodes and the number of leaf nodes in the decision tree
+        @return: number of internal nodes, number of leaf nodes
+        """
+        return self.count_nodes(self.root)  # Call helper function
+
+    def count_nodes(self, node):
+        """
+        Recursive function to count the number of internal nodes and the number of leaf nodes of the subtree with
+        parameter node as the root node
+        @param node: the node of the subtree treated as root node whose internal nodes are to be counted
+        @return: number of internal nodes, number of leaf nodes of the subtree
+        """
+        if node is None:  # If node is None
+            return 0, 0  # Return 0 counts
+        if isinstance(node.val, bool):  # If node is a leaf node
+            return 0, 1  # Return 0 for number of internal nodes and 1 for number of leaf nodes
+        internal_nodes, leaf_nodes = 1, 0  # Initialize number of internal and leaf nodes
+        for child_node in node.children.values():  # For each child node of the current node
+            n1, n2 = self.count_nodes(child_node)  # Count its internal nodes and leaf nodes
+            internal_nodes += n1  # Update the count of internal nodes for the current node
+            leaf_nodes += n2  # Update the count of leaf nodes for the current node
+        return internal_nodes, leaf_nodes  # Return the count of internal and leaf nodes for the current node
+
 
 if __name__ == '__main__':
     # Argument parser to parse command line arguments
@@ -255,6 +280,9 @@ if __name__ == '__main__':
     preds = model.predict(X_test)  # Get the predictions for the test dataset
     preds.to_csv(args.output_file, header=False, index=False)  # Write the predictions to the output file
 
+    # Count and print the number of internal nodes and the number of leaf nodes in the decision tree
+    internal_nodes_count, leaf_nodes_count = model.get_number_of_nodes()
+    print('Number of internal nodes: {} \nNumber of leaf nodes: {}'.format(internal_nodes_count, leaf_nodes_count))
     if y_test is not None:
         accuracy = accuracy_score(y_test, preds)  # Calculate accuracy if the target values for test data is given
         print('Model Accuracy: {}'.format(accuracy))
