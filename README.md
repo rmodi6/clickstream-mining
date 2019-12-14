@@ -22,10 +22,10 @@ python autograder_basic.py
 ## Results
 The accuracy, number of internal nodes and number of leaf nodes for different p values (significance values) are reported in the table below.
 
-|P Value|Accuracy|# Internal Nodes|# Leaf Nodes|
-|-------|--------|----------------|------------|
-|0.01   |0.75216 |26              |105         |
-|0.05   |0.75324 |35              |141         |
-|1      |0.74832 |265             |1061        |
+|P Value|Accuracy     |# Internal Nodes|# Leaf Nodes|
+|-------|-------------|----------------|------------|
+|0.01   |0.75216      |26              |105         |
+|0.05   |**0.75324**  |35              |141         |
+|1.00   |0.74736      |187             |749         |
 
 As observed from the table, the accuracy is maximum for p value 0.05 at 0.75324. The p value is the chi-squared stopping criteria for the decision tree which means if the p value is smaller, the decision tree generation will be stopped earlier. Hence, as the p value increases the number of internal nodes and the number of leaf nodes in the decision tree also increases and at p value 1, the entire decision tree is generated without pruning. This results in over-fitting which leads to memorization of the training examples by the decision tree. As a result, the model performs extremely well on the training dataset, but has a poor accuracy on the testing dataset with increasing p values. With lower p value, the tree is pruned extremely early which results in under-fitting and lower accuracy. To better generalize the model, we need to prune the tree so that it neither overfits nor underfits the training data. This is done by having p value 0.05 which improves the performance of the decision tree. The resulting decision tree is also smaller in size consuming less space.
